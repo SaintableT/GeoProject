@@ -5,7 +5,7 @@ This project is still in progress.
 Contributors:
 Charles Wiseman, Taylor Saintable, David Lombardi, James Petrillo
 
-A module written in JavaScript used for spatial data.
+A module written in node.js used for spatial data.
 QGIS is required to view the spatial data.
 
 This node.js program is supposed to shrink wrap any GeoJSON FeatureCollection.
