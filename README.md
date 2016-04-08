@@ -1,9 +1,9 @@
-# GeoProject
+# shrink-wrap
 
 This project is still in progress.
 
 Contributors:
-Charles Wiseman, Taylor Saintable, David Lombardi, James Petrillo
+Charles Wiseman, Nate Derbinsky, Taylor Saintable, David Lombardi, James Petrillo
 
 A module written in node.js used for spatial data.
 QGIS is required to view the spatial data.
