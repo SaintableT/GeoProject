@@ -1,78 +1,55 @@
 /**
  * We need the package fs to read the file and write to a file.
+ * We also need the pachage hull.js to make our alpha shape
  */
 
 var fs = require('fs');
+var hull = require('hull.js');
 
 /**
- * The code below is supposed to read in the GeoJSON file called
- * master-polygon and the and converts the polygon into an object
- * so that we can access the attributes within the object since
- * the GeoJSON file is made up of a feature collection with multiple
- * features, and within those features contain geometries,
- * specificall points.
+ * The code below is supposed to read in any GeoJSON file with fs
+ * then the newObject variable parses the object so that we can access
+ * all the attributes within that file. The GeoJSON file that we're
+ * using is called ma.geojson and it is a FeatureCollection that
+ * contains multiple features where those features contain GeoJSON
+ * primitives called MultiPolygons which consist of multiple polygons
+ * in one feature.
  */
 
-var data = fs.readFileSync("./master-polygon.geojson");
-var obj = JSON.parse(data);
-
-/**
- * The code below is supposed to loop through all the features in the
- * GeoJSON object and then the feats variable can be used to modify
- * the GeoJSON file.
- */
-var feats;
-for (var i = 0; i < (obj.features).length ; i++) {
-	feats = obj.features[i].geometry.coordinates[0];
-}
+var data = fs.readFileSync("./ma.geojson");
+var newObject = JSON.parse(data);
 
 /**
- * The function below is supposed to make Bezier curves out of the points
- * from the GeoJSON files. The goal is to implement this on any complex
- * GeoJSON FeatureCollection rather than just one feature. t is the 
- * precision of the curves and p0, p1, and p2 are the three points.
+ * The code shown below is supposed to declare a new array, loop through
+ * all the features in the FeatureCollection, and gather all the points.
+ * Our goal is to make an alpha shape, and we do this using hull.js.
+ * hull.js does not take in GeoJSON data therefore we must change the data's
+ * format to use hull(). At the end, all the points are placed in a new array
+ * object called newArray for further use.
  */
-var bezier = function(t, p0, p1, p2) {
-    var x = (Math.pow(1-t,2)*p0[0]+2*t*(1-t)*p1[0]+Math.pow(t,2)*p2[0]);
-	var y = (Math.pow(1-t,2)*p0[1]+2*t*(1-t)*p1[1]+Math.pow(t,2)*p2[1]);
-	return [x,y];
-};
-
-/**
- * The function below is supposed to take in a set of three points a specified
- * distance away from each other and return the angle that those three points
- * made. This function is meant to be used to return all angles inside any given
- * polygons.
- */
-var angle = function(p0, p1, p2) {
-    var p0p1 = Math.pow(p1[0]-p0[0],2)+Math.pow(p1[1]-p0[1],2);
-    var p1p2 = Math.pow(p1[0]-p2[0],2)+Math.pow(p1[1]-p2[1],2);
-    var p2p0 = Math.pow(p2[0]-p0[0],2)+Math.pow(p2[1]-p0[1],2);
-    var angle = Math.acos((p0p1+p1p2-p2p0)/Math.sqrt(4*p0p1*p1p2));
-    return angle;
-};
-
-/**
- * The following nested for loop is supposed to loop through the function called
- * bezier and it's supposed to return a modified version of the original GeoJSON
- * points using the feats variable. The inner loop is supposed to loop through the
- * function and the points while the outer loop's role is to run the inner loop a
- * specified number of times.
- */
-var points = [];
-for (var n = 0; n <= feats[0].length; n+=75) {
-	for (var t = 0; t <= 1; t+=0.001) {
-		if (angle(feats[0][n],feats[0][n+50],feats[0][n+25]) < Math.PI) {
-			points.push(bezier(t,feats[0][n],feats[0][n+25],feats[0][n+50]));
-		}
+var newArray = [];
+for (var i=0; i<newObject.features.length; i++) {
+	for (var j=0; j<newObject.features[i].geometry.coordinates[0][0].length; j++) {
+		newArray[newArray.length] = newObject.features[i].geometry.coordinates[0][0][j];
 	}
 }
+
+/**
+ * Here is where the alpha shape is created. The function hull(object,alpha)
+ * takes in an object as an array of coordinates, then an alpha that controls the
+ * concavity of the shape, this can then be used to return an alpha shape.
+ * At alpha equal to the number of points, hull() will return a convex hull.
+ * at a lower alpha, hull will return a concave hull.
+ */
+
+var myHull = hull(newArray, 50000); // returns points of the hull (in clockwise order)
 
 /**
  * The following object is supposed to turn the points acquired from the nested for
  * loop above into a GeoJSON FeatureCollection. It uses the same properties as the
  * original GeoJSON files given.
  */
+
 var attributes = {
     "type": "FeatureCollection",
     "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
@@ -80,7 +57,7 @@ var attributes = {
         "type": "Feature",
         "geometry": {
             "type": "Polygon",
-            "coordinates": [points]
+            "coordinates": [myHull]
         }
     }]
 };
@@ -90,9 +67,10 @@ var attributes = {
  * order to output the information into a file. fs.writeFile deals with outputting the 
  * object to a new GeoJSON file.
  */
+
 var linestring = JSON.stringify(attributes);
 
-fs.writeFile('smooth.geojson', linestring, function (err) {
+fs.writeFile('alpha.geojson', linestring, function (err) {
 	if (err) {
 		return console.log(err);
 	}
