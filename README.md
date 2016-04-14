@@ -13,5 +13,5 @@ is then read, and the program is executed sequentially. The program then
 outputs a file to the same directiory called called smooth.geojson. The file
 smooth.geojson can then be dragged into QGIS to view.
 
-Dependencies: hull.js
-https://github.com/AndriiHeonia/hull
+Dependencies: hull.js\\
+Link: https://github.com/AndriiHeonia/hull
