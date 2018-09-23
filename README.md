@@ -1,7 +1,5 @@
 # shrink-wrap
 
-This project is still in progress.
-
 A module written in node.js used for spatial data.
 QGIS is required to view the spatial data.
 
